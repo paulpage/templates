@@ -4,6 +4,7 @@
 #include <GL/glu.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 typedef struct AppState {
     float window_width;
@@ -21,6 +22,13 @@ static AppState state = {
     .context = NULL,
     .tri_program_id = 0,
 };
+
+typedef struct Color {
+    unsigned char r;
+    unsigned char g;
+    unsigned char b;
+    unsigned char a;
+} Color;
 
 const GLchar *TRI_VERT_SRC =
     "#version 140\n"
@@ -168,11 +176,16 @@ void gl_draw_triangles(GLfloat vertex_data[], GLuint index_data[]) {
     glUseProgram(0);
 }
 
-void gl_draw_rect(float x, float y, float w, float h, float r, float g, float b, float a) {
+void gl_draw_rect(float x, float y, float w, float h, Color color) {
     float x1 = -1 + 2 * x / state.window_width;
     float y1 = 1 - 2 * y / state.window_height;
     float x2 = -1 + 2 * (x + w) / state.window_width;
     float y2 = 1 - 2 * (y + h) / state.window_height;
+
+    float r = (float)color.r / 255.0f;
+    float g = (float)color.g / 255.0f;
+    float b = (float)color.b / 255.0f;
+    float a = (float)color.a / 255.0f;
 
     GLfloat vertex_data[24] = {
         x1, y1, r, g, b, a,
@@ -206,8 +219,8 @@ int main(void) {
 
         // Draw
         glClear(GL_COLOR_BUFFER_BIT);
-        gl_draw_rect(50.0f, 100.0f, 300.0f, 400.0f, 0.5f, 0.5f, 1.0f, 1.0f);
-        gl_draw_rect(100.0f, 50.0f, 300.0f, 400.0f, 1.0f, 0.5f, 1.0f, 1.0f);
+        gl_draw_rect(50.0f, 100.0f, 300.0f, 400.0f, {128, 128, 255, 255});
+        gl_draw_rect(100.0f, 50.0f, 300.0f, 400.0f, {255, 128, 255, 255});
         SDL_GL_SwapWindow(state.window);
     }
 
