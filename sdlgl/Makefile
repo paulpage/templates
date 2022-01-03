@@ -1,4 +1,4 @@
-CFLAGS=`pkg-config --cflags sdl2 glew`
+CFLAGS=-g `pkg-config --cflags sdl2 glew`
 LDFLAGS=`pkg-config --libs sdl2 glew`
 
 default: main
