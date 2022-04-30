@@ -14,6 +14,7 @@ typedef struct AppState {
     SDL_Window *window;
     SDL_GLContext context;
     GLuint tri_program_id;
+    GLuint basic_program_id;
 } AppState;
 static AppState state = {
     .window_width = 800.0f,
@@ -22,6 +23,7 @@ static AppState state = {
     .window = NULL,
     .context = NULL,
     .tri_program_id = 0,
+    .basic_program_id = 0,
 };
 
 typedef struct Color {
@@ -32,7 +34,7 @@ typedef struct Color {
 } Color;
 
 const GLchar *TRI_VERT_SRC =
-    "#version 140\n"
+    "#version 330 core\n"
     "in vec2 position;"
     "in vec4 color;"
     "out vec4 v_color;"
@@ -42,12 +44,25 @@ const GLchar *TRI_VERT_SRC =
     "}";
 
 const GLchar* TRI_FRAG_SRC =
-    "#version 140\n"
+    "#version 330 core\n"
     "in vec4 v_color;"
     "out vec4 LFragment;"
     "void main() {"
     "  LFragment = v_color;"
     "}";
+
+const char *BASIC_VERT_SRC = "#version 330 core\n"
+    "layout(location = 0) in vec4 position;\n"
+    "void main() {\n"
+    "  gl_Position = position;\n"
+    "}\n";
+
+const char *BASIC_FRAG_SRC = "#version 330 core\n"
+    "out vec4 output_color;\n"
+    "in vec4 v_color;\n"
+    "void main() {\n"
+    "  output_color = vec4(0.0f, 0.0f, 0.7f, 1.0f);\n"
+    "}\n";
 
 
 static GLuint gl_create_shader(GLenum type, const GLchar *src) {
@@ -100,13 +115,13 @@ bool app_init() {
     }
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 2);
+    /* SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1); */
+    /* SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 2); */
 
-    state.window = SDL_CreateWindow("App", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, (int)state.window_width, (int)state.window_height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+    state.window = SDL_CreateWindow("App", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, (int)state.window_width, (int)state.window_height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (state.window == NULL) {
         printf("Error creating window: %s\n", SDL_GetError());
         return false;
@@ -133,6 +148,10 @@ bool app_init() {
 
     // GL Programs
     state.tri_program_id = gl_create_program(TRI_VERT_SRC, TRI_FRAG_SRC);
+    if (!state.tri_program_id) {
+        return false;
+    }
+    state.basic_program_id = gl_create_program(BASIC_VERT_SRC, BASIC_FRAG_SRC);
     if (!state.tri_program_id) {
         return false;
     }
@@ -191,6 +210,31 @@ void gl_draw_triangles(GLfloat vertex_data[], GLuint index_data[], int vertex_co
     glUseProgram(0);
 }
 
+void gl_draw_my_triangle() {
+    float vertices[] = {
+        0.75f, 0.75f, 0.0f, 1.0f,
+        0.75f, -0.75f, 0.0f, 1.0f,
+        -0.75f, -0.75f, 0.0f, 1.0f,
+        0.5f, 0.75f, 0.0f, 1.0f,
+        0.5f, -0.75f, 0.0f, 1.0f,
+        -0.5f, -0.75f, 0.0f, 1.0f,
+    };
+    GLuint vbo, vao;
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    glUseProgram(state.basic_program_id);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
 void gl_draw_rect(float x, float y, float w, float h, Color color) {
     float x1 = gl_x(x);
     float y1 = gl_y(y);
@@ -211,56 +255,6 @@ void gl_draw_rect(float x, float y, float w, float h, Color color) {
     GLuint index_data[] = { 0, 1, 2, 3, 0, 2 };
 
     gl_draw_triangles(vertex_data, index_data, 4, 2);
-}
-
-void gl_draw_circle_arc(float x, float y, float cr, float theta_start, float theta_arc, Color color) {
-    int n = (int)(40.0f * theta_arc / (2*M_PI));
-    GLfloat vertex_data[(n + 2) * 6];
-    GLuint index_data[n * 3];
-    int p = 0, i = 0;
-
-    float r = (float)color.r / 255.0f;
-    float g = (float)color.g / 255.0f;
-    float b = (float)color.b / 255.0f;
-    float a = (float)color.a / 255.0f;
-
-    vertex_data[p] = gl_x(x); p++;
-    vertex_data[p] = gl_y(y); p++;
-    vertex_data[p] = r; p++;
-    vertex_data[p] = g; p++;
-    vertex_data[p] = b; p++;
-    vertex_data[p] = a; p++;
-    vertex_data[p] = gl_x(x + cr * cosf(theta_start)); p++;
-    vertex_data[p] = gl_y(y - cr * sinf(theta_start)); p++;
-    vertex_data[p] = r; p++;
-    vertex_data[p] = g; p++;
-    vertex_data[p] = b; p++;
-    vertex_data[p] = a; p++;
-    for (int t = 0; t < n; t++) {
-        float theta = theta_start + (float)(t + 1) * theta_arc / (float)n;
-        vertex_data[p] = gl_x(x + cr * cosf(theta)); p++;
-        vertex_data[p] = gl_y(y - cr * sinf(theta)); p++;
-        vertex_data[p] = r; p++;
-        vertex_data[p] = g; p++;
-        vertex_data[p] = b; p++;
-        vertex_data[p] = a; p++;
-
-        index_data[i] = 0; i++;
-        index_data[i] = t + 1; i++;
-        index_data[i] = t + 2; i++;
-    }
-
-    gl_draw_triangles(vertex_data, index_data, n + 2, n);
-}
-
-void gl_draw_rounded_rect(float x, float y, float w, float h, float cr, Color color) {
-    gl_draw_rect(x + cr, y, w - 2*cr, h, color);
-    gl_draw_rect(x, y + cr, w, h - 2*cr, color);
-
-    gl_draw_circle_arc(x + w - cr, y + cr, cr, 0.0f, M_PI_2, color);
-    gl_draw_circle_arc(x + cr, y + cr, cr, M_PI_2, M_PI_2, color);
-    gl_draw_circle_arc(x + cr, y + h - cr, cr, M_PI, M_PI_2, color);
-    gl_draw_circle_arc(x + w - cr, y + h - cr, cr, M_PI + M_PI_2, M_PI_2, color);
 }
 
 int main(void) {
@@ -289,9 +283,8 @@ int main(void) {
 
         // Draw
         glClear(GL_COLOR_BUFFER_BIT);
-        gl_draw_rect(50.0f, 100.0f, 300.0f, 400.0f, {128, 128, 255, 255});
-        gl_draw_rect(100.0f, 50.0f, 300.0f, 400.0f, {255, 128, 255, 255});
-        gl_draw_rounded_rect(150.0f, 150.0f, 300.0f, 400.0f, 40.0f, {255, 255, 255, 255});
+        /* gl_draw_rect(50.0f, 100.0f, 300.0f, 400.0f, {128, 128, 255, 255}); */
+        gl_draw_my_triangle();
         SDL_GL_SwapWindow(state.window);
     }
 
