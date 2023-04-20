@@ -1,11 +1,12 @@
-#include <SDL2/SDL.h>
 #include <GL/glew.h>
-#include <SDL2/SDL_opengl.h>
 #include <GL/glu.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
+
+#include "SDL.h"
+#include "SDL_opengl.h"
 
 typedef struct AppState {
     float window_width;
@@ -283,8 +284,8 @@ int main(void) {
 
         // Draw
         glClear(GL_COLOR_BUFFER_BIT);
-        /* gl_draw_rect(50.0f, 100.0f, 300.0f, 400.0f, {128, 128, 255, 255}); */
-        gl_draw_my_triangle();
+        gl_draw_rect(50.0f, 100.0f, 300.0f, 400.0f, {128, 128, 255, 255});
+        /* gl_draw_my_triangle(); */
         SDL_GL_SwapWindow(state.window);
     }
 
