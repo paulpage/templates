@@ -29,6 +29,10 @@ int main(int argc, char *argv[]) {
                 break;
             case SDL_EVENT_MOUSE_WHEEL:
                 printf("wheel %f %f\n", event.wheel.x, event.wheel.y);
+            case SDL_EVENT_MOUSE_BUTTON_DOWN:
+                size_t n = 0;
+                char *data = (char*)SDL_GetClipboardData("image/png", &n);
+                printf("data: %ld\n", n);
         }
 
         SDL_SetRenderDrawColor(renderer, 0, 128, 0, 255);
