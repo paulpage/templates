@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 int main(int argc, char *argv[]) {
     int width = 800;
@@ -10,25 +10,25 @@ int main(int argc, char *argv[]) {
         SDL_Log("Failed to initialize SDL: %s", SDL_GetError());
         return 1;
     }
-    SDL_Window *window = SDL_CreateWindow("Playground", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, 0);
+    SDL_Window *window = SDL_CreateWindow("Playground", width, height, 0);
     if (window == NULL) {
         SDL_Log("Failed to create window: %s", SDL_GetError());
         SDL_Quit();
         return 1;
     }
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0); SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, NULL, 0);
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
     bool quit = false;
     SDL_Event event;
     while (!quit) {
         SDL_WaitEvent(&event);
         switch (event.type) {
-            case SDL_QUIT:
+            case SDL_EVENT_QUIT:
                 quit = true;
                 break;
-            case SDL_MOUSEWHEEL:
-                printf("wheel %f %f\n", event.wheel.preciseX, event.wheel.preciseY);
+            case SDL_EVENT_MOUSE_WHEEL:
+                printf("wheel %f %f\n", event.wheel.x, event.wheel.y);
         }
 
         SDL_SetRenderDrawColor(renderer, 0, 128, 0, 255);
