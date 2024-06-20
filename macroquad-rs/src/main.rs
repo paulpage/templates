@@ -27,15 +27,15 @@ fn super_down() -> bool {
     app::is_key_down(Key::LeftSuper) || app::is_key_down(Key::RightSuper)
 }
 
-fn window_conf() -> Conf {
-    Conf {
-        platform: miniquad::conf::Platform {
-            linux_backend: miniquad::conf::LinuxBackend::WaylandOnly,
-            ..Default::default()
-        },
-        ..Default::default()
-    }
-}
+//fn window_conf() -> app::Conf {
+//    app::Conf {
+//        platform: app::conf::Platform {
+//            linux_backend: miniquad::conf::LinuxBackend::WaylandOnly,
+//            ..Default::default()
+//        },
+//        ..Default::default()
+//    }
+//}
 
 #[macroquad::main("hello")]
 async fn main() {
