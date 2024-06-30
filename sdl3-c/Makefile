@@ -1,5 +1,5 @@
-CFLAGS=-g `pkg-config --cflags sdl3`
-LDFLAGS=`pkg-config --cflags --libs sdl3`
+CFLAGS += $(shell pkg-config sdl3 --cflags)
+LDFLAGS += $(shell pkg-config sdl3 --libs)
 
 default: main
 

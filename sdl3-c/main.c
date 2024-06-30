@@ -16,8 +16,7 @@ int main(int argc, char *argv[]) {
         SDL_Quit();
         return 1;
     }
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, NULL, 0);
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, NULL);
 
     bool quit = false;
     SDL_Event event;
