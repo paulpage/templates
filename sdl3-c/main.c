@@ -47,12 +47,12 @@ int main(int argc, char *argv[]) {
                     rect2.y = event.motion.y;
                     break;
                 case SDL_EVENT_KEY_DOWN:
-                    if (event.key.key == SDLK_q) {
+                    if (event.key.key == SDLK_Q) {
                         show = true;
                     }
                     break;
                 case SDL_EVENT_KEY_UP:
-                    if (event.key.key == SDLK_q) {
+                    if (event.key.key == SDLK_Q) {
                         show = false;
                     }
                     break;
