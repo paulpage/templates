@@ -14,4 +14,4 @@ copy %SDL_PATH%\SDL2.pdb .
 copy %SDLMAIN_PATH%\SDL2main.lib .
 
 
-cl %CommonCompilerFlags% main.c /I ..\lib /I \dev\lib\sdl2\SDL2-2.28.4\include /link /DEBUG:FULL /SUBSYSTEM:CONSOLE /LIBPATH:C:\dev\lib\sdl2\SDL2-2.28.4\VisualC\SDL\x64\Debug\ /LIBPATH:C:\dev\lib\sdl2\SDL2-2.28.4\VisualC\SDLmain\x64\Debug\ SDL2.lib SDL2main.lib kernel32.lib user32.lib winmm.lib gdi32.lib opengl32.lib shell32.lib
+cl %CommonCompilerFlags% main.c clip.c /I ..\lib /I \dev\lib\sdl2\SDL2-2.28.4\include /link /DEBUG:FULL /SUBSYSTEM:CONSOLE /LIBPATH:C:\dev\lib\sdl2\SDL2-2.28.4\VisualC\SDL\x64\Debug\ /LIBPATH:C:\dev\lib\sdl2\SDL2-2.28.4\VisualC\SDLmain\x64\Debug\ SDL2.lib SDL2main.lib kernel32.lib user32.lib winmm.lib gdi32.lib opengl32.lib shell32.lib

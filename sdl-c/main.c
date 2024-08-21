@@ -2,6 +2,8 @@
 #include <stdbool.h>
 #include <SDL.h>
 
+#include <windows.h>
+
 int main(int argc, char *argv[]) {
     int width = 800;
     int height = 600;
@@ -22,6 +24,9 @@ int main(int argc, char *argv[]) {
     SDL_FRect rect2 = {0, 0, 100, 100};
     SDL_FRect rect3 = {0, 0, 100, 100};
     bool show = false;
+    enum_clipboard_formats(window);
+    /* bool result = copy_text("hello", 6, window); */
+    /* printf("The result is %d (true=%d false=%d)\n", result, true, false); */
 
     bool quit = false;
     SDL_Event event;
