@@ -1,0 +1,8 @@
+[package]
+name = "s3stest"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+emscripten_main_loop = "0.1.1"
+sdl3-sys = { version = "0.0.10", features = ["build-from-source-static"] }

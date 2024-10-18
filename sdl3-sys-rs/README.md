@@ -1,0 +1,27 @@
+# TODO
+- [X] Init
+- [X] Quit
+- [ ] Open window
+- [ ] Input
+  - [ ] Keyboard
+  - [ ] Physical keyboard
+  - [ ] Text
+  - [ ] Mouse
+    - [ ] Motion
+    - [ ] Clicks
+    - [ ] Wheel
+  - [ ] Touch
+- [ ] Graphics
+  - [ ] Clear screen
+  - [ ] Quad
+  - [ ] Texture
+  - [ ] Text
+- [ ] Window operations
+  - [ ] Resize
+- [ ] Audio
+  - [ ] Play sound
+  - [ ] Play background music
+- [ ] Resources
+  - [ ] Font
+  - [ ] Texture
+  - [ ] Sound
