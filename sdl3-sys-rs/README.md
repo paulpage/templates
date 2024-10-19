@@ -1,7 +1,7 @@
 # TODO
 - [X] Init
 - [X] Quit
-- [ ] Open window
+- [X] Open window
 - [ ] Input
   - [ ] Keyboard
   - [ ] Physical keyboard
