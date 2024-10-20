@@ -11,8 +11,8 @@
     - [ ] Clicks
     - [ ] Wheel
   - [ ] Touch
-- [ ] Graphics
-  - [ ] Clear screen
+- [.] Graphics
+  - [X] Clear screen
   - [ ] Quad
   - [ ] Texture
   - [ ] Text
