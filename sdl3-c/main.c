@@ -6,7 +6,7 @@ int main(int argc, char *argv[]) {
     int width = 800;
     int height = 600;
 
-    if (SDL_Init(SDL_INIT_VIDEO != 0)) {
+    if (SDL_Init(SDL_INIT_VIDEO) == 0) {
         SDL_Log("Failed to initialize SDL: %s", SDL_GetError());
         return 1;
     }
