@@ -16,6 +16,14 @@ int main(int argc, char *argv[]) {
         SDL_Quit();
         return 1;
     }
+
+    /*SDL_GPUDevice *gpu = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV, true, NULL);*/
+    /*if (gpu == NULL) {*/
+    /*    SDL_Log("Failed to create GPU: %s", SDL_GetError());*/
+    /*    SDL_Quit();*/
+    /*    return 1;*/
+    /*}*/
+
     SDL_Renderer *renderer = SDL_CreateRenderer(window, NULL);
 
     SDL_FRect rect1 = {0, 0, 100, 100};

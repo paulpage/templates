@@ -7,6 +7,7 @@ use std::ptr;
 use std::mem;
 use std::fs;
 use std::path::PathBuf;
+use gl::types::GLuint;
 
 use sdl3_sys::everything::*;
 
@@ -44,11 +45,14 @@ fn init_sdl(w: i32, h: i32) -> SdlContext {
             panic!("SDL_Init failed");
         }
 
-        let window = SDL_CreateWindow(c"My Window".as_ptr(), w as c_int, h as c_int, 0);
+        let window = SDL_CreateWindow(c"My Window".as_ptr(), w as c_int, h as c_int, SDL_WINDOW_OPENGL);
         if window.is_null() {
             print_err();
             panic!("SDL_CreateWindow failed");
         }
+
+        let supports_spirv = SDL_GPUSupportsShaderFormats(SDL_GPU_SHADERFORMAT_SPIRV, ptr::null());
+        println!("suports_spirv: {}", supports_spirv);
 
         let gpu = SDL_CreateGPUDevice(SDL_GPU_SHADERFORMAT_SPIRV, true, ptr::null());
         if gpu.is_null() {
@@ -59,6 +63,14 @@ fn init_sdl(w: i32, h: i32) -> SdlContext {
         if !SDL_ClaimWindowForGPUDevice(gpu, window) {
             print_err();
             panic!("SDL_ClaimWindowForGPUDevice failed");
+        }
+
+        let s: GLuint = 0;
+        unsafe {
+            gl::load_with(|s| {
+                let cstr = CStr::from_bytes_with_nul_unchecked(s.as_bytes());
+                SDL_GL_GetProcAddress(cstr.as_ptr()).unwrap() as *const _
+            });
         }
 
         SdlContext {
@@ -250,7 +262,9 @@ fn main() {
     emscripten_main_loop::run(app);
 
     #[cfg(not(target_os = "emscripten"))]
-    while app.update() {
+    {
+        while app.update() {
+        }
+        app.quit();
     }
-    app.quit();
 }
