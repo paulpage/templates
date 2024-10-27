@@ -16,6 +16,91 @@ struct App {
     buf_vertex: *mut SDL_GPUBuffer,
 }
 
+#[repr(C)]
+#[derive(Copy, Clone, Debug)]
+struct Vec2 {
+    x: f32,
+    y: f32,
+}
+
+impl Vec2 {
+    pub fn new(x: f32, y: f32) -> Self {
+        Self {
+            x,
+            y,
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug)]
+struct Color {
+    r: f32,
+    g: f32,
+    b: f32,
+    a: f32,
+}
+
+impl Color {
+    pub fn new(r: f32, g: f32, b: f32, a: f32) -> Self {
+        Self {
+            r,
+            g,
+            b,
+            a,
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug)]
+struct Rect {
+    x: f32,
+    y: f32,
+    w: f32,
+    h: f32,
+}
+
+impl Rect {
+    pub fn new(x: f32, y: f32, w: f32, h: f32) -> Self {
+        Self {
+            x,
+            y,
+            w,
+            h,
+        }
+    }
+}
+
+#[repr(C)]
+struct VertInput {
+    dst_rect: Rect,
+    src_rect: Rect,
+    colors: [Color; 4],
+    corner_radius: f32,
+    edge_softness: f32,
+    border_thickness: f32,
+}
+
+#[repr(C)]
+struct GpuVertex {
+    pos: Vec2,
+    color: Color,
+    rect_min: Vec2,
+    rect_max: Vec2,
+}
+
+impl GpuVertex {
+    pub fn new(pos: Vec2, color: Color, rect_min: Vec2, rect_max: Vec2) -> Self {
+        Self {
+            pos,
+            color,
+            rect_min,
+            rect_max,
+        }
+    }
+}
+
 fn print_err()  {
     let err_ptr = unsafe { SDL_GetError() };
     if err_ptr.is_null() {
@@ -106,18 +191,55 @@ impl App {
     pub fn new(w: i32, h: i32) -> Self {
         let sdl = init_sdl(w, h);
 
-        let vertex_shader = load_shader(sdl.gpu, "src/triangle.vert", 0, 0, 0, 0);
-        let fragment_shader = load_shader(sdl.gpu, "src/solid_color.frag", 0, 0, 0, 0);
+        let vertex_shader = load_shader(sdl.gpu, "src/triangle.vert", 0, 1, 0, 0);
+        let fragment_shader = load_shader(sdl.gpu, "src/solid_color.frag", 0, 1, 0, 0);
 
-        let vertices: [f32; 36] = [
-            -0.5, -0.5, 1.0, 1.0, 1.0, 1.0,
-            -0.5, 0.5, 1.0, 1.0, 1.0, 1.0,
-            0.5, 0.5, 1.0, 1.0, 1.0, 1.0,
-            -0.5, -0.5, 1.0, 1.0, 1.0, 1.0,
-            0.5, 0.5, 1.0, 1.0, 1.0, 1.0,
-            0.5, -0.5, 1.0, 1.0, 1.0, 1.0,
+        //let vertices: [VertInput; 1] = [
+        //    VertInput {
+        //        dst_rect: Rect::new(10.0, 20.0, 100.0, 200.0),
+        //        src_rect: Rect::new(0.0, 0.0, 1.0, 1.0),
+        //        colors: [
+        //            Color::new(1.0, 1.0, 0.0, 1.0),
+        //            Color::new(1.0, 1.0, 0.0, 1.0),
+        //            Color::new(1.0, 1.0, 0.0, 1.0),
+        //            Color::new(1.0, 1.0, 0.0, 1.0),
+        //        ],
+        //        corner_radius: 5.0,
+        //        edge_softness: 1.0,
+        //        border_thickness: 2.0,
+        //    },
+        //];
+        //
+        //let buf_size = (vertices.len() * mem::size_of::<VertInput>()) as u32;
+
+        let white = Color::new(255.0, 255.0, 0.0, 255.0);
+        let rect_min = Vec2::new(20.0, 20.0);
+        let rect_max = Vec2::new(300.0, 300.0);
+        let vertices: [GpuVertex; 6] = [
+            //GpuVertex::new(Vec2::new(20.0, 20.0), white, rect_min, rect_max),
+            //GpuVertex::new(Vec2::new(20.0, 300.0), white, rect_min, rect_max),
+            //GpuVertex::new(Vec2::new(300.0, 300.0), white, rect_min, rect_max),
+            //GpuVertex::new(Vec2::new(20.0, 20.0), white, rect_min, rect_max),
+            //GpuVertex::new(Vec2::new(300.0, 300.0), white, rect_min, rect_max),
+            //GpuVertex::new(Vec2::new(300.0, 20.0), white, rect_min, rect_max),
+            GpuVertex::new(Vec2::new(0.0, 0.0), white, rect_min, rect_max),
+            GpuVertex::new(Vec2::new(0.0, 600.0), white, rect_min, rect_max),
+            GpuVertex::new(Vec2::new(800.0, 600.0), white, rect_min, rect_max),
+            GpuVertex::new(Vec2::new(0.0, 0.0), white, rect_min, rect_max),
+            GpuVertex::new(Vec2::new(800.0, 600.0), white, rect_min, rect_max),
+            GpuVertex::new(Vec2::new(800.0, 0.0), white, rect_min, rect_max),
         ];
-        let buf_size = (vertices.len() * mem::size_of::<f32>()) as u32;
+        let buf_size = (vertices.len() * mem::size_of::<GpuVertex>()) as u32;
+        //let vertices: [f32; 36] = [
+        //    -0.5, -0.5, 1.0, 1.0, 1.0, 1.0,
+        //    -0.5, 0.5, 1.0, 1.0, 1.0, 1.0,
+        //    0.5, 0.5, 1.0, 1.0, 1.0, 1.0,
+        //    -0.5, -0.5, 1.0, 1.0, 1.0, 1.0,
+        //    0.5, 0.5, 1.0, 1.0, 1.0, 1.0,
+        //    0.5, -0.5, 1.0, 1.0, 1.0, 1.0,
+        //];
+        //let buf_size = (vertices.len() * mem::size_of::<f32>()) as u32;
+        println!("buf_size: {}", buf_size);
 
         // Buffers
         let mut buffer_info: SDL_GPUBufferCreateInfo = unsafe { mem::zeroed() };
@@ -164,12 +286,24 @@ impl App {
         // Pipeline
         let mut pipeline_info: SDL_GPUGraphicsPipelineCreateInfo = unsafe { mem::zeroed() };
         let mut vertex_buffer_info: SDL_GPUVertexBufferDescription = unsafe { mem::zeroed() };
-        let mut vertex_attributes: [SDL_GPUVertexAttribute; 2] = [
+        let mut vertex_attributes: [SDL_GPUVertexAttribute; 4] = [
+            unsafe { mem::zeroed() },
+            unsafe { mem::zeroed() },
             unsafe { mem::zeroed() },
             unsafe { mem::zeroed() },
         ];
+        let mut blend_state: SDL_GPUColorTargetBlendState = unsafe { mem::zeroed() };
+        blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
+        blend_state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
+        blend_state.color_blend_op = SDL_GPU_BLENDOP_ADD;
+        blend_state.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
+        blend_state.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
+        blend_state.alpha_blend_op = SDL_GPU_BLENDOP_ADD;
+        blend_state.enable_blend = true;
         let mut color_target_info: SDL_GPUColorTargetDescription = unsafe { mem::zeroed() };
         color_target_info.format = unsafe { SDL_GetGPUSwapchainTextureFormat(sdl.gpu, sdl.window) };
+
+        color_target_info.blend_state = blend_state;
 
         pipeline_info.target_info.num_color_targets = 1;
         pipeline_info.target_info.color_target_descriptions = &color_target_info;
@@ -184,7 +318,7 @@ impl App {
         vertex_buffer_info.slot = 0;
         vertex_buffer_info.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX;
         vertex_buffer_info.instance_step_rate = 0;
-        vertex_buffer_info.pitch = mem::size_of::<f32>() as u32 * 6;
+        vertex_buffer_info.pitch = mem::size_of::<f32>() as u32 * 10;
 
         vertex_attributes[0].buffer_slot = 0;
         vertex_attributes[0].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
@@ -196,14 +330,25 @@ impl App {
         vertex_attributes[1].location = 1;
         vertex_attributes[1].offset = mem::size_of::<f32>() as u32 * 2;
 
+        vertex_attributes[2].buffer_slot = 0;
+        vertex_attributes[2].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
+        vertex_attributes[2].location = 2;
+        vertex_attributes[2].offset = mem::size_of::<f32>() as u32 * 6;
+
+        vertex_attributes[3].buffer_slot = 0;
+        vertex_attributes[3].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
+        vertex_attributes[3].location = 3;
+        vertex_attributes[3].offset = mem::size_of::<f32>() as u32 * 8;
+
         pipeline_info.vertex_input_state.num_vertex_buffers = 1;
         pipeline_info.vertex_input_state.vertex_buffer_descriptions = &vertex_buffer_info;
-        pipeline_info.vertex_input_state.num_vertex_attributes = 2;
+        pipeline_info.vertex_input_state.num_vertex_attributes = 4;
         pipeline_info.vertex_input_state.vertex_attributes = vertex_attributes.as_ptr();
 
         pipeline_info.props = 0;
 
         let pipeline = unsafe { SDL_CreateGPUGraphicsPipeline(sdl.gpu, &pipeline_info) };
+
 
         unsafe {
             SDL_ReleaseGPUShader(sdl.gpu, vertex_shader);
@@ -255,6 +400,9 @@ impl App {
 
                 vertex_binding.buffer = self.buf_vertex;
                 vertex_binding.offset = 0;
+
+                SDL_PushGPUVertexUniformData(cmdbuf, 0, (&Vec2::new(800.0, 600.0)) as *const Vec2 as *const _, mem::size_of::<Vec2>() as u32);
+                SDL_PushGPUFragmentUniformData(cmdbuf, 0, (&Vec2::new(800.0, 600.0)) as *const Vec2 as *const _, mem::size_of::<Vec2>() as u32);
 
                 let render_pass = SDL_BeginGPURenderPass(cmdbuf, &color_target_info, 1, ptr::null());
                 SDL_BindGPUGraphicsPipeline(render_pass, self.pipeline);
