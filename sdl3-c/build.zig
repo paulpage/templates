@@ -10,9 +10,18 @@ pub fn build(b: *std.Build) !void {
         .optimize = optimize,
     });
 
+    const sdl_dep = b.dependency("sdl", .{
+        .target = target,
+        .optimize = optimize,
+        //.preferred_link_mode = .static, // or .dynamic
+    });
+    const sdl_lib = sdl_dep.artifact("SDL3");
+    // exe.linkSystemLibrary("sdl3");
+
     exe.addCSourceFiles(.{ .files = &.{"main.c"} });
     exe.linkLibC();
-    exe.linkSystemLibrary("sdl3");
+    exe.linkLibrary(sdl_lib);
+
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);
