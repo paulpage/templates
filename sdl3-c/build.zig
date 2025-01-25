@@ -4,22 +4,22 @@ pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const sdl_dep = b.dependency("sdl", .{
-        .target = target,
-        .optimize = optimize,
-        //.preferred_link_mode = .static, // or .dynamic
-    });
-    const sdl_lib = sdl_dep.artifact("SDL3");
-
     const exe = b.addExecutable(.{
         .name = "main",
         .target = target,
         .optimize = optimize,
     });
 
+    const sdl_dep = b.dependency("sdl", .{
+        .target = target,
+        .optimize = optimize,
+        //.preferred_link_mode = .static, // or .dynamic
+    });
+    const sdl_lib = sdl_dep.artifact("SDL3");
+    // exe.linkSystemLibrary("sdl3");
+
     exe.addCSourceFiles(.{ .files = &.{"main.c"} });
     exe.linkLibC();
-    // exe.linkSystemLibrary("sdl3");
     exe.linkLibrary(sdl_lib);
 
     b.installArtifact(exe);
