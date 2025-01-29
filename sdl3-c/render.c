@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
 
 
     size_t file_size = 0, line_count = 0;
-    char **buf = read_file_lines("main.c", &file_size, &line_count);
+    char **buf = read_file_lines("render.c", &file_size, &line_count);
     printf("file_size: %ld\nline_count: %ld\n", file_size, line_count);
 
     float scroll_offset = 0;
