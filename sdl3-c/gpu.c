@@ -30,6 +30,10 @@ typedef struct Color {
     float r, g, b, a;
 } Color;
 
+typedef struct Vec2 {
+    float x, y;
+} Vec2;
+
 typedef struct VertInput {
     Rect dst_rect;
     Rect src_rect;
@@ -78,8 +82,8 @@ int main(int argc, char *argv[]) {
     ASSERT_CALL(SDL_ClaimWindowForGPUDevice(gpu, window));
 
     // Shaders
-    SDL_GPUShader *vert = load_shader(gpu, "shaders/2d.vert", SDL_GPU_SHADERSTAGE_VERTEX);
-    SDL_GPUShader *frag = load_shader(gpu, "shaders/2d.frag", SDL_GPU_SHADERSTAGE_FRAGMENT);
+    SDL_GPUShader *vertex_shader = load_shader(gpu, "shaders/2d.vert", SDL_GPU_SHADERSTAGE_VERTEX);
+    SDL_GPUShader *fragment_shader = load_shader(gpu, "shaders/2d.frag", SDL_GPU_SHADERSTAGE_FRAGMENT);
 
     // Buffer data
     VertInput vertices[2] = {
@@ -153,6 +157,102 @@ int main(int argc, char *argv[]) {
     SDL_GPUGraphicsPipelineCreateInfo pipeline_info = {0};
     SDL_GPUVertexBufferDescription vertex_buffer_info = {0};
     SDL_GPUVertexAttribute vertex_attributes[9] = {0};
+    SDL_GPUColorTargetBlendState blend_state = {
+        .src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+        .dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+        .color_blend_op = SDL_GPU_BLENDOP_ADD,
+        .src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE,
+        .dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+        .alpha_blend_op = SDL_GPU_BLENDOP_ADD,
+        .enable_blend = true,
+    };
+    SDL_GPUColorTargetDescription color_target_info = {0};
+    color_target_info.format = SDL_GetGPUSwapchainTextureFormat(gpu, window);
+    color_target_info.blend_state = blend_state;
+
+    pipeline_info.target_info.num_color_targets = 1;
+    pipeline_info.target_info.color_target_descriptions = &color_target_info;
+    pipeline_info.multisample_state.sample_count = SDL_GPU_SAMPLECOUNT_1;
+    pipeline_info.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLESTRIP;
+    pipeline_info.vertex_shader = vertex_shader;
+    pipeline_info.fragment_shader = fragment_shader;
+
+    vertex_buffer_info.slot = 0;
+    vertex_buffer_info.input_rate = SDL_GPU_VERTEXINPUTRATE_INSTANCE;
+    vertex_buffer_info.instance_step_rate = 4;
+    vertex_buffer_info.pitch = sizeof(VertInput);
+
+    // dst_rect
+    vertex_attributes[0].buffer_slot = 0;
+    vertex_attributes[0].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4;
+    vertex_attributes[0].location = 0;
+    vertex_attributes[0].offset = 0;
+
+    // dst_rect
+    vertex_attributes[1].buffer_slot = 0;
+    vertex_attributes[1].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4;
+    vertex_attributes[1].location = 1;
+    vertex_attributes[1].offset = sizeof(float) * 4;
+
+    // colors[0]
+    vertex_attributes[2].buffer_slot = 0;
+    vertex_attributes[2].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4;
+    vertex_attributes[2].location = 2;
+    vertex_attributes[2].offset = sizeof(float) * 8;
+
+    // colors[1]
+    vertex_attributes[3].buffer_slot = 0;
+    vertex_attributes[3].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4;
+    vertex_attributes[3].location = 3;
+    vertex_attributes[3].offset = sizeof(float) * 12;
+
+    // colors[2]
+    vertex_attributes[4].buffer_slot = 0;
+    vertex_attributes[4].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4;
+    vertex_attributes[4].location = 4;
+    vertex_attributes[4].offset = sizeof(float) * 16;
+
+    // colors[3]
+    vertex_attributes[5].buffer_slot = 0;
+    vertex_attributes[5].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4;
+    vertex_attributes[5].location = 5;
+    vertex_attributes[5].offset = sizeof(float) * 20;
+
+    // corner_radius
+    vertex_attributes[6].buffer_slot = 0;
+    vertex_attributes[6].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT;
+    vertex_attributes[6].location = 6;
+    vertex_attributes[6].offset = sizeof(float) * 24;
+
+    // edge_softness
+    vertex_attributes[7].buffer_slot = 0;
+    vertex_attributes[7].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT;
+    vertex_attributes[7].location = 7;
+    vertex_attributes[7].offset = sizeof(float) * 25;
+
+    // border_thickness
+    vertex_attributes[8].buffer_slot = 0;
+    vertex_attributes[8].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT;
+    vertex_attributes[8].location = 8;
+    vertex_attributes[8].offset = sizeof(float) * 26;
+
+    pipeline_info.vertex_input_state.num_vertex_buffers = 1;
+    pipeline_info.vertex_input_state.vertex_buffer_descriptions = &vertex_buffer_info;
+    pipeline_info.vertex_input_state.num_vertex_attributes = 9;
+    pipeline_info.vertex_input_state.vertex_attributes = vertex_attributes;
+
+    pipeline_info.props = 0;
+
+    SDL_GPUGraphicsPipeline *pipeline = SDL_CreateGPUGraphicsPipeline(gpu, &pipeline_info);
+    ASSERT_CREATED(pipeline);
+
+    SDL_ReleaseGPUShader(gpu, vertex_shader);
+    SDL_ReleaseGPUShader(gpu, fragment_shader);
+
+
+
+
+
 
 
     bool quit = false;
@@ -190,6 +290,37 @@ int main(int argc, char *argv[]) {
             }
         }
 
+        SDL_GPUCommandBuffer *cmdbuf = SDL_AcquireGPUCommandBuffer(gpu);
+        ASSERT_CREATED(cmdbuf);
+
+        SDL_GPUTexture *swapchain_texture = NULL;
+        ASSERT_CALL(SDL_AcquireGPUSwapchainTexture(cmdbuf, window, &swapchain_texture, NULL, NULL));
+
+        if (swapchain_texture) {
+            SDL_GPUColorTargetInfo color_target_info = {
+                .texture = swapchain_texture,
+                .clear_color = (SDL_FColor){0.0f, 0.5f, 0.0f, 1.0f},
+                .load_op = SDL_GPU_LOADOP_CLEAR,
+                .store_op = SDL_GPU_STOREOP_STORE,
+            };
+
+            SDL_GPUBufferBinding vertex_binding = {
+                .buffer = buf_vertex,
+                .offset = 0,
+            };
+
+            Vec2 screen_size = {800.0f, 600.0f};
+            SDL_PushGPUVertexUniformData(cmdbuf, 0, &screen_size, sizeof(Vec2));
+            SDL_PushGPUFragmentUniformData(cmdbuf, 0, &screen_size, sizeof(Vec2));
+
+            SDL_GPURenderPass *render_pass = SDL_BeginGPURenderPass(cmdbuf, &color_target_info, 1, NULL);
+            SDL_BindGPUGraphicsPipeline(render_pass, pipeline);
+            SDL_BindGPUVertexBuffers(render_pass, 0, &vertex_binding, 1);
+            SDL_DrawGPUPrimitives(render_pass, 8, 2, 0, 0);
+            SDL_EndGPURenderPass(render_pass);
+        }
+
+        SDL_SubmitGPUCommandBuffer(cmdbuf);
     }
 
     SDL_DestroyGPUDevice(gpu);
