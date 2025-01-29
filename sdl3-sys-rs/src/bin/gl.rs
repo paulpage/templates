@@ -74,6 +74,10 @@ fn init_sdl(w: i32, h: i32) -> SdlContext {
             panic!("SDL_Init failed");
         }
 
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, i32::from(SDL_GL_CONTEXT_PROFILE_CORE));
+
         let window = SDL_CreateWindow(c"My Window".as_ptr(), w as c_int, h as c_int, SDL_WINDOW_OPENGL);
         if window.is_null() {
             print_err();

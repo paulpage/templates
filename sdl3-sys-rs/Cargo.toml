@@ -7,3 +7,6 @@ edition = "2021"
 emscripten_main_loop = "0.1.1"
 gl = "0.14.0"
 sdl3-sys = { version = "0.0.10", features = ["build-from-source-static"] }
+
+[target.wasm32-unknown-emscripten]
+rustflags = ["-C", "link-arg=-sEMULATE_FUNCTION_POINTER_CASTS=1"]
