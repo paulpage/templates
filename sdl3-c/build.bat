@@ -4,15 +4,22 @@ set FLAGS=/nologo /Zi
 set LDFLAGS=/DEBUG:FULL /SUBSYSTEM:CONSOLE
 set LIBS=SDL3.lib kernel32.lib user32.lib winmm.lib gdi32.lib opengl32.lib shell32.lib
 
-set LIBDIR=C:\dev\lib\sdl3\lib\x64\
-set INCDIR=C:\dev\lib\sdl3\include\
+REM set LIBDIR=C:\dev\lib\sdl3\lib
+set LIBDIR=C:\dev\ext\SDL\build
+set BINDIR=C:\dev\lib\sdl3\bin
+set INCDIR=C:\dev\lib\sdl3\include
 
 REM set SRC=render.c
 set SRC=gpu.c
 
+REM copy %LIBDIR%\SDL3.lib .
 copy %LIBDIR%\SDL3.dll .
 
-cl %SRC% %FLAGS% /I %INCDIR% /link %LDFLAGS% /LIBPATH:%LIBDIR% %LIBS%
+cl /Zi %SRC% SDL3.lib %FLAGS% /I %INCDIR% /link %LDFLAGS% /LIBPATH:%LIBDIR% %LIBS%
 
-glslangValidator -V shaders/2d.vert -o shaders/2d.vert.spv
-glslangValidator -V shaders/2d.frag -o shaders/2d.frag.spv
+%BINDIR%\shadercross.exe shaders\2d.vert.hlsl -o shaders\2d.vert.spv
+%BINDIR%\shadercross.exe shaders\2d.frag.hlsl -o shaders\2d.frag.spv
+
+
+REM glslangValidator -V shaders/2d.vert -o shaders/2d.vert.spv
+REM glslangValidator -V shaders/2d.frag -o shaders/2d.frag.spv

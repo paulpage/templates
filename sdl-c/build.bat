@@ -1,4 +1,4 @@
-@echo off
+REM @echo off
 REM set SDL2_LIB=\dev\lib\sdl2\bin\x64\Release\
 REM set SDL2_INC=\dev\lib\sdl2\SDL2-2.28.4\include\
 set SDL2_LIB=\dev\lib\sdl2\SDL2-2.28.5\lib\x64\
