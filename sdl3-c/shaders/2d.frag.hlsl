@@ -7,6 +7,7 @@ struct Input {
 };
 
 float4 main(Input input) : SV_Target0 {
-    return input.color * texture.Sample(sam, input.tex_coord);
-    // return input.color;
+    // return input.color * texture.Sample(sam, input.tex_coord);
+    return input.color;
+    // return float4(0.8, 0.7, 0.6, 1);
 }

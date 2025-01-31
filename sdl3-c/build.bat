@@ -12,8 +12,7 @@ set INCDIR=C:\dev\lib\sdl3\include
 REM set SRC=render.c
 set SRC=gpu.c
 
-REM copy %LIBDIR%\SDL3.lib .
-copy %LIBDIR%\SDL3.dll .
+REM copy %LIBDIR%\SDL3.dll .
 
 cl /Zi %SRC% SDL3.lib %FLAGS% /I %INCDIR% /link %LDFLAGS% /LIBPATH:%LIBDIR% %LIBS%
 

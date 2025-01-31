@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
 					}
 				}}
 			},
-			.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+			.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLESTRIP,
 			.vertex_shader = vertex_shader,
 			.fragment_shader = fragment_shader,
 		}
@@ -285,6 +285,9 @@ int main(int argc, char *argv[]) {
 
             // modify data
             // data_ptr[i].dst_rect.x = ...
+            for (int i = 0; i < 2; i++) {
+                data_ptr[i] = vertices[i];
+            }
 
             SDL_UnmapGPUTransferBuffer(gpu, vertex_data_transfer_buffer);
 
@@ -333,7 +336,7 @@ int main(int argc, char *argv[]) {
             SDL_BindGPUVertexStorageBuffers(render_pass, 0, &vertex_data_buffer, 1);
             SDL_PushGPUVertexUniformData(cmdbuf, 0, &(Vec2){800.0f, 600.0f}, sizeof(Vec2));
 
-            SDL_DrawGPUPrimitives(render_pass, 2 * 6, 1, 0, 0);
+            SDL_DrawGPUPrimitives(render_pass, 2 * 4, 1, 0, 0);
             SDL_EndGPURenderPass(render_pass);
 
         }
