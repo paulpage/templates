@@ -42,8 +42,9 @@ typedef struct Vec2 {
 typedef struct VertInput {
     Rect dst_rect;
     Rect src_rect;
-    Vec4 colors[4];
+    Vec4 border_color;
     Vec4 corner_radii;
+    Vec4 colors[4];
     float edge_softness;
     float border_thickness;
     float _padding[2]; // std140 alignment
@@ -192,28 +193,30 @@ int main(int argc, char *argv[]) {
         (VertInput){
             .dst_rect = (Rect){300.0f, 200.0f, 200.0f, 200.0f},
             .src_rect = (Rect){0.0f, 0.0f, 1.0f, 1.0f},
+            .corner_radii = (Vec4){50.0f, 20.0f, 100.0f, 10.0f},
+            .border_color = (Vec4){1.0, 1.0, 0.0, 1.0},
             .colors = {
                 (Vec4){1.0f, 1.0f, 0.0f, 1.0f},
                 (Vec4){1.0f, 1.0f, 1.0f, 1.0f},
                 (Vec4){1.0f, 0.0f, 0.0f, 1.0f},
                 (Vec4){0.0f, 1.0f, 0.0f, 1.0f},
             },
-            .corner_radii = (Vec4){50.0f, 20.0f, 100.0f, 10.0f},
             .edge_softness = 1.0f,
-            .border_thickness = 2.0f,
+            .border_thickness = 20.0f,
         },
         (VertInput){
-            .dst_rect = (Rect){0.0f, 0.0f, 200.0f, 200.0f},
+            .dst_rect = (Rect){10.0f, 10.0f, 200.0f, 200.0f},
             .src_rect = (Rect){0.0f, 0.0f, 1.0f, 1.0f},
+            .corner_radii = {10.0f, 10.0f, 10.0f, 10.0f},
+            .border_color = (Vec4){0.2, 0.2, 0.8, 1.0},
             .colors = {
-                (Vec4){0.0f, 0.0f, 1.0f, 1.0f},
-                (Vec4){1.0f, 1.0f, 1.0f, 1.0f},
-                (Vec4){1.0f, 0.0f, 0.0f, 1.0f},
-                (Vec4){0.0f, 1.0f, 0.0f, 1.0f},
+                (Vec4){0.0f, 0.0f, 0.0f, 1.0f},
+                (Vec4){0.0f, 0.0f, 0.0f, 1.0f},
+                (Vec4){0.2f, 0.2f, 0.2f, 1.0f},
+                (Vec4){0.2f, 0.2f, 0.2f, 1.0f},
             },
-            .corner_radii = {5.0f, 3.0f, 5.0f, 3.0f},
             .edge_softness = 1.0f,
-            .border_thickness = 2.0f,
+            .border_thickness = 10.0f,
         },
     };
 

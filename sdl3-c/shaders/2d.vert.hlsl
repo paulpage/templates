@@ -1,18 +1,21 @@
 struct VertexData {
     float4 dst_rect;
     float4 src_rect;
-    float4 colors[4];
+    float4 border_color;
     float4 corner_radii;
+    float4 colors[4];
     float edge_softness;
     float border_thickness;
 };
 
 struct Output {
-    float2 tex_coord : TEXCOORD0;
     float4 rect : RECT;
-    float4 color : TEXCOORD1;
+    float4 color : COLOR;
+    float4 border_color : BCOLOR;
     float4 corner_radii : RADII;
     float4 position : SV_Position;
+    float2 tex_coord : TEXCOORD0;
+    float border_thickness : BTHICKNESS;
 };
 
 StructuredBuffer<VertexData> data : register(t0, space0);
@@ -41,5 +44,7 @@ Output main(uint id : SV_VertexID) {
     output.position = float4((vert_pos[tri_idx[p]] / (screen_size / 2) - 1) * float2(1, -1), 0, 1);
     output.rect = d.dst_rect;
     output.corner_radii = d.corner_radii;
+    output.border_color = d.border_color;
+    output.border_thickness = d.border_thickness;
     return output;
 }
