@@ -46,6 +46,7 @@ typedef struct VertInput {
     Vec4 corner_radii;
     float edge_softness;
     float border_thickness;
+    float _padding[2]; // std140 alignment
 } VertInput;
 
 SDL_GPUShader *load_shader(
@@ -96,7 +97,7 @@ int main(int argc, char *argv[]) {
 
     // Shaders
     SDL_GPUShader *vertex_shader = load_shader(gpu, "shaders/2d.vert.spv", SDL_GPU_SHADERSTAGE_VERTEX, 0, 0, 1, 1);
-    SDL_GPUShader *fragment_shader = load_shader(gpu, "shaders/2d.frag.spv", SDL_GPU_SHADERSTAGE_FRAGMENT, 1, 0, 0, 0);
+    SDL_GPUShader *fragment_shader = load_shader(gpu, "shaders/2d.frag.spv", SDL_GPU_SHADERSTAGE_FRAGMENT, 1, 0, 0, 1);
 
     // Pipeline
     SDL_GPUGraphicsPipeline *pipeline = SDL_CreateGPUGraphicsPipeline(
@@ -117,7 +118,7 @@ int main(int argc, char *argv[]) {
 					}
 				}}
 			},
-			.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLESTRIP,
+			.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
 			.vertex_shader = vertex_shader,
 			.fragment_shader = fragment_shader,
 		}
@@ -189,7 +190,7 @@ int main(int argc, char *argv[]) {
     // Buffer data
     VertInput vertices[2] = {
         (VertInput){
-            .dst_rect = (Rect){10.0f, 20.0f, 100.0f, 200.0f},
+            .dst_rect = (Rect){300.0f, 200.0f, 200.0f, 200.0f},
             .src_rect = (Rect){0.0f, 0.0f, 1.0f, 1.0f},
             .colors = {
                 (Vec4){1.0f, 1.0f, 0.0f, 1.0f},
@@ -197,15 +198,15 @@ int main(int argc, char *argv[]) {
                 (Vec4){1.0f, 0.0f, 0.0f, 1.0f},
                 (Vec4){0.0f, 1.0f, 0.0f, 1.0f},
             },
-            .corner_radii = (Vec4){5.0f, 5.0f, 10.0f, 10.0f},
+            .corner_radii = (Vec4){50.0f, 20.0f, 100.0f, 10.0f},
             .edge_softness = 1.0f,
             .border_thickness = 2.0f,
         },
         (VertInput){
-            .dst_rect = (Rect){30.0f, 40.0f, 100.0f, 200.0f},
+            .dst_rect = (Rect){0.0f, 0.0f, 200.0f, 200.0f},
             .src_rect = (Rect){0.0f, 0.0f, 1.0f, 1.0f},
             .colors = {
-                (Vec4){1.0f, 1.0f, 0.0f, 1.0f},
+                (Vec4){0.0f, 0.0f, 1.0f, 1.0f},
                 (Vec4){1.0f, 1.0f, 1.0f, 1.0f},
                 (Vec4){1.0f, 0.0f, 0.0f, 1.0f},
                 (Vec4){0.0f, 1.0f, 0.0f, 1.0f},
@@ -335,8 +336,9 @@ int main(int argc, char *argv[]) {
 
             SDL_BindGPUVertexStorageBuffers(render_pass, 0, &vertex_data_buffer, 1);
             SDL_PushGPUVertexUniformData(cmdbuf, 0, &(Vec2){800.0f, 600.0f}, sizeof(Vec2));
+            SDL_PushGPUFragmentUniformData(cmdbuf, 0, &(Vec2){800.0f, 600.0f}, sizeof(Vec2));
 
-            SDL_DrawGPUPrimitives(render_pass, 2 * 4, 1, 0, 0);
+            SDL_DrawGPUPrimitives(render_pass, 2 * 6, 1, 0, 0);
             SDL_EndGPURenderPass(render_pass);
 
         }

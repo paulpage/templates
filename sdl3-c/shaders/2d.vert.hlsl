@@ -9,7 +9,9 @@ struct VertexData {
 
 struct Output {
     float2 tex_coord : TEXCOORD0;
+    float4 rect : RECT;
     float4 color : TEXCOORD1;
+    float4 corner_radii : RADII;
     float4 position : SV_Position;
 };
 
@@ -19,22 +21,25 @@ cbuffer UniformBlock : register(b0, space1) {
     float2 screen_size : packoffset(c0);
 };
 
-static const float2 vert_pos[4] = {
-    {-0.5f, -0.5f},
-    {-0.5f, 0.5f},
-    {0.5f, 0.5f},
-    {0.5f, -0.5f}
-};
+static const uint tri_idx[6] = {0, 1, 2, 2, 3, 0};
 
 Output main(uint id : SV_VertexID) {
 
-    VertexData d = data[id / 4];
-    uint p = id % 4;
+    VertexData d = data[id / 6];
+    uint p = id % 6;
+
+    float2 vert_pos[4] = {
+        float2(d.dst_rect.x, d.dst_rect.y),
+        float2(d.dst_rect.x, d.dst_rect.y + d.dst_rect.w),
+        float2(d.dst_rect.x + d.dst_rect.z, d.dst_rect.y + d.dst_rect.w),
+        float2(d.dst_rect.x + d.dst_rect.z, d.dst_rect.y),
+    };
 
     Output output;
     output.tex_coord = float2(0, 0);
-    // output.color = float4(1, 0, 0, 1);
-    output.color = d.colors[p];
-    output.position = float4(vert_pos[p].xy, 0, 1);
+    output.color = d.colors[tri_idx[p]];
+    output.position = float4((vert_pos[tri_idx[p]] / (screen_size / 2) - 1) * float2(1, -1), 0, 1);
+    output.rect = d.dst_rect;
+    output.corner_radii = d.corner_radii;
     return output;
 }
