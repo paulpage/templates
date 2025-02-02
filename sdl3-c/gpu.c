@@ -8,8 +8,13 @@
 #include "stb_rect_pack.h"
 #include "stb_truetype.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #define PJP_IMPLEMENTATION
 #include "pjp.h"
+
+#include "types.h"
 
 #define ASSERT_CALL(call) \
     do { \
@@ -39,6 +44,11 @@ typedef struct Vec2 {
     float x, y;
 } Vec2;
 
+typedef struct Texture {
+    SDL_GPUTexture *handle;
+    int w, h, d;
+} Texture;
+
 typedef struct VertInput {
     Rect dst_rect;
     Rect src_rect;
@@ -47,7 +57,8 @@ typedef struct VertInput {
     Vec4 colors[4];
     float edge_softness;
     float border_thickness;
-    float _padding[2]; // std140 alignment
+    float use_texture;
+    float _padding[1]; // std140 alignment
 } VertInput;
 
 SDL_GPUShader *load_shader(
@@ -76,6 +87,71 @@ SDL_GPUShader *load_shader(
     SDL_GPUShader *shader = SDL_CreateGPUShader(gpu, &info);
     ASSERT_CREATED(shader);
     return shader;
+}
+
+Texture load_texture(SDL_GPUDevice *gpu, char *filename) {
+    int w, h, n;
+    unsigned char *data = stbi_load(filename, &w, &h, &n, 0);
+    ASSERT_CREATED(data);
+
+    SDL_GPUTransferBuffer *texture_transfer_buffer = SDL_CreateGPUTransferBuffer(
+        gpu,
+        &(SDL_GPUTransferBufferCreateInfo){
+            .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
+            .size = w * h * n,
+        }
+    );
+
+    u8 *texture_transfer_ptr = SDL_MapGPUTransferBuffer(
+        gpu,
+        texture_transfer_buffer,
+        false
+    );
+    SDL_memcpy(texture_transfer_ptr, data, w * h * n);
+    SDL_UnmapGPUTransferBuffer(gpu, texture_transfer_buffer);
+
+    SDL_GPUTexture *handle = SDL_CreateGPUTexture(
+        gpu,
+        &(SDL_GPUTextureCreateInfo){
+            .type = SDL_GPU_TEXTURETYPE_2D,
+            .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
+            .width = w,
+            .height = h,
+            .layer_count_or_depth = 1,
+            .num_levels = 1,
+            .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
+        }
+    );
+
+    SDL_GPUCommandBuffer *upload_cmd_buf = SDL_AcquireGPUCommandBuffer(gpu);
+    SDL_GPUCopyPass *copy_pass = SDL_BeginGPUCopyPass(upload_cmd_buf);
+
+    SDL_UploadToGPUTexture(
+        copy_pass,
+        &(SDL_GPUTextureTransferInfo) {
+            .transfer_buffer = texture_transfer_buffer,
+            .offset = 0,
+        },
+        &(SDL_GPUTextureRegion){
+            .texture = handle,
+            .w = w,
+            .h = h,
+            .d = 1,
+        },
+        false
+    );
+
+    SDL_EndGPUCopyPass(copy_pass);
+    SDL_SubmitGPUCommandBuffer(upload_cmd_buf);
+    SDL_ReleaseGPUTransferBuffer(gpu, texture_transfer_buffer);
+
+    stbi_image_free(data);
+    return (Texture){
+        .handle = handle,
+        .w = w,
+        .h = h,
+        .d = n,
+    };
 }
 
 int main(int argc, char *argv[]) {
@@ -130,18 +206,7 @@ int main(int argc, char *argv[]) {
     SDL_ReleaseGPUShader(gpu, fragment_shader);
 
     // Textures
-    SDL_GPUTexture *texture = SDL_CreateGPUTexture(
-        gpu,
-        &(SDL_GPUTextureCreateInfo){
-            .type = SDL_GPU_TEXTURETYPE_2D,
-            .format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM,
-            .width = 1,
-            .height = 1,
-            .layer_count_or_depth = 1,
-            .num_levels = 1,
-            .usage = SDL_GPU_TEXTUREUSAGE_SAMPLER,
-        }
-    );
+    Texture texture = load_texture(gpu, "../res/bird.png");
 
     SDL_GPUSampler *sampler = SDL_CreateGPUSampler(
         gpu,
@@ -171,38 +236,22 @@ int main(int argc, char *argv[]) {
         }
     );
 
-    SDL_GPUTransferBuffer *texture_transfer_buffer = SDL_CreateGPUTransferBuffer(
-        gpu,
-        &(SDL_GPUTransferBufferCreateInfo){
-            .usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-            .size = 1 * 1 * 4,
-        }
-    );
-
-    Uint8 image_data[4] = {1, 1, 1, 1};
-    Uint8 *texture_transfer_ptr = SDL_MapGPUTransferBuffer(
-        gpu,
-        texture_transfer_buffer,
-        false
-    );
-    SDL_memcpy(texture_transfer_ptr, &image_data, 1 * 1 * 4);
-    SDL_UnmapGPUTransferBuffer(gpu, texture_transfer_buffer);
-
     // Buffer data
     VertInput vertices[2] = {
         (VertInput){
             .dst_rect = (Rect){300.0f, 200.0f, 200.0f, 200.0f},
-            .src_rect = (Rect){0.0f, 0.0f, 1.0f, 1.0f},
+            .src_rect = (Rect){0.0f, 0.0f, 64.0f, 64.0f},
             .corner_radii = (Vec4){50.0f, 20.0f, 100.0f, 10.0f},
             .border_color = (Vec4){1.0, 1.0, 0.0, 1.0},
             .colors = {
-                (Vec4){1.0f, 1.0f, 0.0f, 1.0f},
                 (Vec4){1.0f, 1.0f, 1.0f, 1.0f},
-                (Vec4){1.0f, 0.0f, 0.0f, 1.0f},
-                (Vec4){0.0f, 1.0f, 0.0f, 1.0f},
+                (Vec4){1.0f, 1.0f, 1.0f, 1.0f},
+                (Vec4){1.0f, 1.0f, 1.0f, 1.0f},
+                (Vec4){1.0f, 1.0f, 1.0f, 1.0f},
             },
             .edge_softness = 1.0f,
             .border_thickness = 20.0f,
+            .use_texture = 1.0f,
         },
         (VertInput){
             .dst_rect = (Rect){10.0f, 10.0f, 200.0f, 200.0f},
@@ -221,25 +270,6 @@ int main(int argc, char *argv[]) {
     };
 
     unsigned int buf_size = 2 * sizeof(VertInput);
-
-    // Upload texture
-    SDL_GPUCommandBuffer *upload_cmd_buf = SDL_AcquireGPUCommandBuffer(gpu);
-    SDL_GPUCopyPass *copy_pass = SDL_BeginGPUCopyPass(upload_cmd_buf);
-
-    SDL_UploadToGPUTexture(
-        copy_pass,
-        &(SDL_GPUTextureTransferInfo) {
-            .transfer_buffer = texture_transfer_buffer,
-            .offset = 0,
-        },
-        &(SDL_GPUTextureRegion){
-            .texture = texture,
-            .w = 1,
-            .h = 1,
-            .d = 1,
-        },
-        false
-    );
 
     // Main loop
     bool quit = false;
@@ -331,7 +361,7 @@ int main(int argc, char *argv[]) {
                 render_pass,
                 0,
                 &(SDL_GPUTextureSamplerBinding){
-                    .texture = texture,
+                    .texture = texture.handle,
                     .sampler = sampler,
                 },
                 1
@@ -351,7 +381,7 @@ int main(int argc, char *argv[]) {
 
 	SDL_ReleaseGPUGraphicsPipeline(gpu, pipeline);
 	SDL_ReleaseGPUSampler(gpu, sampler);
-	SDL_ReleaseGPUTexture(gpu, texture);
+	SDL_ReleaseGPUTexture(gpu, texture.handle);
 	SDL_ReleaseGPUTransferBuffer(gpu, vertex_data_transfer_buffer);
 	SDL_ReleaseGPUBuffer(gpu, vertex_data_buffer);
     SDL_DestroyGPUDevice(gpu);

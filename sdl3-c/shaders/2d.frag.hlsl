@@ -9,6 +9,7 @@ struct Input {
     float4 position : SV_Position; // clip space!
     float2 tex_coord : TEXCOORD0;
     float border_thickness : BTHICKNESS;
+    float use_texture : USETEX;
 };
 
 cbuffer UniformBlock : register(b0, space3) {
@@ -23,6 +24,10 @@ float sdf_rounded_box(float2 p, float2 b, float4 r) {
 }
 
 float4 main(Input input) : SV_Target0 {
+    if (input.use_texture > 0) {
+        return input.color * texture.Sample(sam, input.tex_coord);
+    }
+
     // return input.color * texture.Sample(sam, input.tex_coord);
 
     float2 half_size = 2 * input.rect.zw / screen_size.y / 2;
