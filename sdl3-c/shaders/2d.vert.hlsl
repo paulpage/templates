@@ -41,10 +41,10 @@ Output main(uint id : SV_VertexID) {
     };
 
     float2 tex_coords[4] = {
-        float2(0, 0),
-        float2(0, 1),
-        float2(1, 1),
-        float2(1, 0),
+        float2(d.src_rect.x, d.src_rect.y),
+        float2(d.src_rect.x, d.src_rect.y + d.src_rect.w),
+        float2(d.src_rect.x + d.src_rect.z, d.src_rect.y + d.src_rect.w),
+        float2(d.src_rect.x + d.src_rect.z, d.src_rect.y),
     };
 
     Output output;

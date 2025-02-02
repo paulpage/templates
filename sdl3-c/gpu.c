@@ -240,7 +240,7 @@ int main(int argc, char *argv[]) {
     VertInput vertices[2] = {
         (VertInput){
             .dst_rect = (Rect){300.0f, 200.0f, 200.0f, 200.0f},
-            .src_rect = (Rect){0.0f, 0.0f, 64.0f, 64.0f},
+            .src_rect = (Rect){0.0f, 0.0f, 32.0f/64.0f, 32.0f/64.0f},
             .corner_radii = (Vec4){50.0f, 20.0f, 100.0f, 10.0f},
             .border_color = (Vec4){1.0, 1.0, 0.0, 1.0},
             .colors = {
