@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <windows.h>
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #define STB_RECT_PACK_IMPLEMENTATION
@@ -36,13 +37,12 @@ Font load_font(SDL_Renderer* renderer, const char* font_path) {
     Font font = {0};
     size_t font_size = 0;
     unsigned char *font_buffer = read_file(font_path, &font_size);
-    printf("font file size: %ld\n", font_size);
+    printf("font file size: %zd\n", font_size);
 
     unsigned char *atlas_data = malloc(ATLAS_WIDTH * ATLAS_HEIGHT);
 
     stbtt_pack_context pack_context = {0};
 
-    stbtt_pack_range pack_ranges[1] = {0};
     stbtt_pack_range pack_range = {0};
     pack_range.font_size = FONT_SIZE;
     pack_range.first_unicode_codepoint_in_range = 32;
@@ -73,8 +73,6 @@ Font load_font(SDL_Renderer* renderer, const char* font_path) {
 }
 
 void draw_text(SDL_Renderer* renderer, Font* font, const char *text, float x, float y) {
-    float start_x = x;
-
     Uint8 r, g, b, a;
 	SDL_GetRenderDrawColor(renderer, &r, &g, &b, &a);
 	SDL_SetTextureColorMod(font->texture, r, g, b);
@@ -108,9 +106,28 @@ void draw_text(SDL_Renderer* renderer, Font* font, const char *text, float x, fl
 int main(int argc, char *argv[]) {
 
 
+
+
+    LARGE_INTEGER StartingTime, EndingTime, ElapsedMicroseconds;
+    LARGE_INTEGER Frequency;
+    QueryPerformanceFrequency(&Frequency); 
+    QueryPerformanceCounter(&StartingTime);
+    char strbuf[1024];
+
+    QueryPerformanceCounter(&EndingTime);
+    ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
+    ElapsedMicroseconds.QuadPart *= 1000000;
+    ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
+    sprintf(strbuf, "%lld", ElapsedMicroseconds.QuadPart);
+
+
+
+
+
+
     size_t file_size = 0, line_count = 0;
     char **buf = read_file_lines("render.c", &file_size, &line_count);
-    printf("file_size: %ld\nline_count: %ld\n", file_size, line_count);
+    printf("file_size: %zd\nline_count: %zd\n", file_size, line_count);
 
     float scroll_offset = 0;
     bool mouse_down = false;
@@ -166,16 +183,36 @@ int main(int argc, char *argv[]) {
         SDL_SetRenderDrawColor(renderer, 0, 100, 100, 255);
         SDL_RenderClear(renderer);
 
+        QueryPerformanceCounter(&EndingTime);
+        ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
+        ElapsedMicroseconds.QuadPart *= 1000000;
+        ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
+        sprintf(strbuf, "%lld", ElapsedMicroseconds.QuadPart);
+
+
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        SDL_FRect rect = {300.0f, 200.0f, 200.0f, 200.0f};
-        SDL_RenderFillRect(renderer, &rect);
+        draw_text(renderer, &font, strbuf, 20, 20);
 
-        SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
 
-        for (int i = 0; i < line_count; i++) {
-            float offset = scroll_offset;
-            draw_text(renderer, &font, buf[i], 0, i * 20 + offset);
-        }
+        /* SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); */
+        /* SDL_FRect rect = {300.0f, 200.0f, 200.0f, 200.0f}; */
+        /* SDL_RenderFillRect(renderer, &rect); */
+
+
+
+        /* SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); */
+        /* for (int i = 0; i < line_count; i++) { */
+        /*     float offset = scroll_offset; */
+        /*     draw_text(renderer, &font, buf[i], 0, i * 20 + offset); */
+        /* } */
+
+        /* SDL_FRect src_rect = { */
+        /*     0.0f, 0.0f, ATLAS_WIDTH, ATLAS_HEIGHT, */
+        /* }; */
+        /* SDL_FRect dst_rect = { */
+        /*     100.0f, 100.0f, 400.0f, 400.0f, */
+        /* }; */
+        /* SDL_RenderTexture(renderer, font.texture, &src_rect, &dst_rect); */
 
         SDL_RenderPresent(renderer);
     }

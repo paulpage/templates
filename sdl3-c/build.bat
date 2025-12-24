@@ -14,7 +14,7 @@ set SRC=gpu.c
 
 REM copy %LIBDIR%\SDL3.dll .
 
-cl /Zi %SRC% SDL3.lib %FLAGS% /I %INCDIR% /link %LDFLAGS% /LIBPATH:%LIBDIR% %LIBS%
+cl /Zi /O3 %SRC% SDL3.lib %FLAGS% /I %INCDIR% /link %LDFLAGS% /LIBPATH:%LIBDIR% %LIBS%
 
 %BINDIR%\shadercross.exe shaders\2d.vert.hlsl -o shaders\2d.vert.spv
 %BINDIR%\shadercross.exe shaders\2d.frag.hlsl -o shaders\2d.frag.spv

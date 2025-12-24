@@ -248,6 +248,7 @@ impl App {
         assert_created!(buf_vertex, "SDL_CreateGPUBuffer");
 
         let mut transfer_buffer_info: SDL_GPUTransferBufferCreateInfo = unsafe { mem::zeroed() };
+
         transfer_buffer_info.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
         transfer_buffer_info.size = buf_size;
         transfer_buffer_info.props = 0;
