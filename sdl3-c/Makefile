@@ -1,31 +1,27 @@
 CFLAGS += $(shell pkg-config sdl3 --cflags)
 LDFLAGS += -lm $(shell pkg-config sdl3 --libs)
-SHADERS := $(wildcard shaders/*.vert shaders/*.frag)
+SHADERS := $(wildcard shaders/*.hlsl)
 SPV_FILES := $(SHADERS:%=%.spv)
 
-default: main
+default: render
 
 render: render.c
-	${CC} -o $@ $< ${CFLAGS} ${LDFLAGS}
+	${CC} -o $@.bin $< ${CFLAGS} ${LDFLAGS}
+
+%-run: %
+	./$<.bin
 
 gl: gl.c
-	${CC} -o $@ $< ${CFLAGS} -lGL ${LDFLAGS}
+	${CC} -o $@.bin $< ${CFLAGS} -lGL ${LDFLAGS}
 
-gpu: gpu.c
-	${CC} -o $@ $< ${CFLAGS} ${LDFLAGS}
+gpu: gpu.c shaders
+	${CC} -o $@.bin $< ${CFLAGS} ${LDFLAGS}
 
 .PHONY: shaders
-shaders: $(SPV_FILES)
-
-%.vert.spv: %.vert
-	glslangValidator -V $< -o $@
-
-%.frag.spv: %.frag
-	glslangValidator -V $< -o $@
-
-run: render
-	./render
+shaders:
+	shadercross shaders/2d.vert.hlsl -o shaders/2d.vert.spv
+	shadercross shaders/2d.frag.hlsl -o shaders/2d.frag.spv
 
 clean:
-	rm -f main
+	rm -f *.bin
 

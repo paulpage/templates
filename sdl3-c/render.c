@@ -2,7 +2,6 @@
 #include <stdbool.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
-#include <windows.h>
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #define STB_RECT_PACK_IMPLEMENTATION
@@ -105,26 +104,6 @@ void draw_text(SDL_Renderer* renderer, Font* font, const char *text, float x, fl
 
 int main(int argc, char *argv[]) {
 
-
-
-
-    LARGE_INTEGER StartingTime, EndingTime, ElapsedMicroseconds;
-    LARGE_INTEGER Frequency;
-    QueryPerformanceFrequency(&Frequency); 
-    QueryPerformanceCounter(&StartingTime);
-    char strbuf[1024];
-
-    QueryPerformanceCounter(&EndingTime);
-    ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
-    ElapsedMicroseconds.QuadPart *= 1000000;
-    ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
-    sprintf(strbuf, "%lld", ElapsedMicroseconds.QuadPart);
-
-
-
-
-
-
     size_t file_size = 0, line_count = 0;
     char **buf = read_file_lines("render.c", &file_size, &line_count);
     printf("file_size: %zd\nline_count: %zd\n", file_size, line_count);
@@ -183,15 +162,10 @@ int main(int argc, char *argv[]) {
         SDL_SetRenderDrawColor(renderer, 0, 100, 100, 255);
         SDL_RenderClear(renderer);
 
-        QueryPerformanceCounter(&EndingTime);
-        ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
-        ElapsedMicroseconds.QuadPart *= 1000000;
-        ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
-        sprintf(strbuf, "%lld", ElapsedMicroseconds.QuadPart);
-
-
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        draw_text(renderer, &font, strbuf, 20, 20);
+        for (int i = 0; i < line_count; i++) {
+            draw_text(renderer, &font, buf[i], 20, 20 + i * 20);
+        }
 
 
         /* SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); */
