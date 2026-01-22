@@ -95,7 +95,6 @@ void draw_text(SDL_Renderer* renderer, Font* font, const char *text, float x, fl
                 quad.x1 - quad.x0,
                 quad.y1 - quad.y0
             };
-
             SDL_RenderTexture(renderer, font->texture, &src_rect, &dst_rect);
         }
         ++text;
@@ -116,7 +115,7 @@ int main(int argc, char *argv[]) {
 
     ASSERT_CALL(SDL_Init(SDL_INIT_VIDEO));
 
-    SDL_Window *window = SDL_CreateWindow("Playground", width, height, 0);
+    SDL_Window *window = SDL_CreateWindow("Playground", width, height, SDL_WINDOW_RESIZABLE);
     ASSERT_CREATED(window);
 
     SDL_Renderer *renderer = SDL_CreateRenderer(window, NULL);
@@ -164,7 +163,7 @@ int main(int argc, char *argv[]) {
 
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         for (int i = 0; i < line_count; i++) {
-            draw_text(renderer, &font, buf[i], 20, 20 + i * 20);
+            draw_text(renderer, &font, buf[i], 20, 20 + i * 20 + scroll_offset);
         }
 
 
